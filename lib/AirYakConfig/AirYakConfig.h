@@ -7,43 +7,63 @@
 #ifndef AIRYAK_CONFIG_H
 #define AIRYAK_CONFIG_H
 
-// #define AIRYAK_DEBUG 1
+  // #define AIRYAK_DEBUG 1
 
-#ifdef AIRYAK_DEBUG
-  /**
-   * @brief Initializes the hardware serial interface for debug logging.
-   * @details Sets the baud rate to 115200 bps to ensure high-speed, non-blocking telemetry.
-   */
-  #define AIRYAK_DEBUG_START()      (void)(Serial.begin(115200))
-  #define AIRYAK_DEBUG_PRINT(...)   (void)(Serial.print(__VA_ARGS__))
-  #define AIRYAK_DEBUG_PRINTLN(...) (void)(Serial.println(__VA_ARGS__))
-  #define AIRYAK_DEBUG_METRIC(label, val, unit) \
-    do { \
-      Serial.print(F(label)); \
-      Serial.print(val); \
-      Serial.println(F(unit)); \
-    } while(0)
-#else
+  #ifdef AIRYAK_DEBUG
 
-  /**
-   * @brief No-op fallback when debugging is disabled.
-   */
-  #define AIRYAK_DEBUG_START()                  ((void)0)
-  
-  /**
-   * @brief No-op fallback when debugging is disabled.
-   */
-  #define AIRYAK_DEBUG_PRINT(...)               ((void)0)
+    /**
+     * @brief Initializes the hardware serial interface for debug logging.
+     * @details Sets the baud rate to 115200 bps to ensure high-speed, non-blocking telemetry.
+     */
+    #define AIRYAK_DEBUG_START() (void)(Serial.begin(115200))
 
-  /**
-   * @brief No-op fallback when debugging is disabled.
-   */
-  #define AIRYAK_DEBUG_PRINTLN(...)             ((void)0)
+    /**
+     * @brief Prints a message or value to the serial debug stream without a newline.
+     * @param[in] ... Variadic argument representing the item(s) to be printed.
+     */
+    #define AIRYAK_DEBUG_PRINT(...) (void)(Serial.print(__VA_ARGS__))
 
-  /**
-   * @brief No-op fallback when debugging is disabled.
-   */
-  #define AIRYAK_DEBUG_METRIC(label, val, unit) ((void)0)
-#endif
+    /**
+     * @brief Prints a message or value to the serial debug stream followed by a newline.
+     * @param[in] ... Variadic argument representing the item(s) to be printed.
+     */
+    #define AIRYAK_DEBUG_PRINTLN(...) (void)(Serial.println(__VA_ARGS__))
+
+    /**
+     * @brief Outputs a formatted metric with a flash-memory string label and unit to minimize SRAM usage.
+     * @param[in] label Constant string literal label describing the metric.
+     * @param[in] val The dynamic data value or sensor variable to monitor.
+     * @param[in] unit Constant string literal representing the unit of measurement.
+     */
+    #define AIRYAK_DEBUG_METRIC(label, val, unit) \
+      do { \
+        Serial.print(F(label)); \
+        Serial.print(val); \
+        Serial.println(F(unit)); \
+      } while(0)
+
+  #else
+
+    /**
+     * @brief No-op fallback when debugging is disabled.
+     */
+    #define AIRYAK_DEBUG_START() ((void)0)
+    
+    /**
+     * @brief No-op fallback when debugging is disabled.
+     */
+    #define AIRYAK_DEBUG_PRINT(...) ((void)0)
+
+    /**
+     * @brief No-op fallback when debugging is disabled.
+     */
+    #define AIRYAK_DEBUG_PRINTLN(...) ((void)0)
+
+    /**
+     * @brief No-op fallback when debugging is disabled.
+     */
+    #define AIRYAK_DEBUG_METRIC(label, val, unit) ((void)0)
+
+  #endif
 
 #endif // AIRYAK_CONFIG_H
