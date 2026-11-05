@@ -35,7 +35,7 @@ class Rudder::Impl {
      * @param[in] sweep_delay_millis The number of milliseconds that the output actuator takes to move.
      */
     Impl(uint8_t input_pin, uint8_t output_pin, uint16_t sweep_delay_millis): 
-      input(input_pin),
+      input(input_pin, 0),
       output(output_pin, 90, sweep_delay_millis),
       next_sample(0),
       total_sample(720),
@@ -63,7 +63,7 @@ void Rudder::update() {
   this->impl->total_sample -= this->impl->samples[this->impl->next_sample];
 
   // Cycle in the new sample.
-  this->impl->samples[this->impl->next_sample] = (uint8_t)round((float)this->impl->input.read() * 180.0f / 1023.0f);;
+  this->impl->samples[this->impl->next_sample] = (uint8_t)round((float)this->impl->input.read() * (180.0f / 1023.0f));;
 
   // Recalculate the total samples.
   this->impl->total_sample += this->impl->samples[this->impl->next_sample];
@@ -84,4 +84,8 @@ void Rudder::update() {
       AIRYAK_DEBUG_METRIC("Rudder is moving to position", new_position, "degrees.");
     }
   }
+}
+
+uint8_t Rudder::getPosition(void) const {
+  return this->impl->output.getPosition();
 }

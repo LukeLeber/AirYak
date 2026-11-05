@@ -21,8 +21,9 @@ class AnalogSensor {
      * @brief Constructs a new analog sensor instance.
      * 
      * @param[in] pin The physical PWM input pin for the sensor.
+     * @param[in] sensitivity_factor The EMA smoothing factor for the sensor.
      */
-    AnalogSensor(uint8_t pin);
+    AnalogSensor(uint8_t pin, uint8_t sensitivity_factor = 2);
 
     /**
      * @brief Destroys an analog sensor instance.

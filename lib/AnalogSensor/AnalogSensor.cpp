@@ -16,19 +16,38 @@
  */
 class AnalogSensor::Impl {
   public:
-    uint8_t pin; /**< Assigned physical micro-controller input channel. */
+    uint8_t pin;                     /**< Assigned physical micro-controller input channel. */
+    uint8_t sensitivity_factor;      /**< Assigned sensitivity factor for the sensor. */
+    mutable uint16_t smoothed_value; /**< The current smoothed value for the sensor. */
+    mutable bool is_initialized;     /**< An initialization flag for the sensor. */
 
     /**
      * @brief Instantiates the private structural context block.
      * 
      * Persists the input channel.
+     * 
+     * @param[in] pin The physical PWM input pin for the sensor.
+     * @param[in] sensitivity_factor The EMA smoothing factor for the sensor.
      */
-    Impl(uint8_t pin): pin(pin) {
+    Impl(uint8_t pin, uint8_t sensitivity_factor) : pin(pin), sensitivity_factor(sensitivity_factor), smoothed_value(0), is_initialized(false) {
       pinMode(pin, INPUT);
+    }
+
+    uint16_t read(void) const {
+      uint16_t raw = analogRead(this->pin);
+      if (!this->is_initialized) {
+        this->smoothed_value = raw;
+        this->is_initialized = true;
+      } else {
+        // Apply an exponential smoothing algorithm to cut down on jitter.
+        // See https://en.wikipedia.org/wiki/Exponential_smoothing for more information.
+        this->smoothed_value = this->smoothed_value + ((raw - this->smoothed_value) >> this->sensitivity_factor);
+      }
+      return this->smoothed_value;
     }
 };
 
-AnalogSensor::AnalogSensor(uint8_t pin): impl(new AnalogSensor::Impl(pin)) {
+AnalogSensor::AnalogSensor(uint8_t pin, uint8_t sensitivity_factor): impl(new AnalogSensor::Impl(pin, sensitivity_factor)) {
 
 }
 
@@ -37,17 +56,5 @@ AnalogSensor::~AnalogSensor() {
 }
 
 uint16_t AnalogSensor::read() const {
-
-  // Toss out the first read.
-  analogRead(this->impl->pin); 
-  delayMicroseconds(10);
-
-  // Collect 16 samples.
-  uint32_t accumulator = 0;
-  for (uint8_t i = 0; i < 16; ++i) {
-    accumulator += analogRead(this->impl->pin);
-  }
-
-  // Report the linear average of all samples.
-  return static_cast<uint16_t>(accumulator >> 4);
+  return this->impl->read();
 }

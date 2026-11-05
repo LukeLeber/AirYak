@@ -40,6 +40,8 @@ class Rudder {
      */
     void update();
     
+    uint8_t getPosition(void) const;
+
   private:
     class Impl;
     Impl* impl; /**< Pointer to the private data block container (PIMPL pattern). */

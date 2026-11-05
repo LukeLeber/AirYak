@@ -2,7 +2,6 @@
 #include <Servo.h>
 #include <EcoServo.h>
 
-#define DEBUG 1
 class EcoServo::Impl {
   public:
     uint8_t pin;
