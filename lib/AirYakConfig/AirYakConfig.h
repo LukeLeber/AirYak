@@ -7,22 +7,22 @@
 #ifndef AIRYAK_CONFIG_H
 #define AIRYAK_CONFIG_H
 
-#define AIRYAK_DEBUG 1
+// #define AIRYAK_DEBUG 1
 
 #ifdef AIRYAK_DEBUG
-  #define AIRYAK_DEBUG_START()  (void)(Serial.begin(9600))
+  #define AIRYAK_DEBUG_START()      (void)(Serial.begin(115200))
   #define AIRYAK_DEBUG_PRINT(...)   (void)(Serial.print(__VA_ARGS__))
   #define AIRYAK_DEBUG_PRINTLN(...) (void)(Serial.println(__VA_ARGS__))
   #define AIRYAK_DEBUG_METRIC(label, val, unit) \
     do { \
-      Serial.print(label); \
+      Serial.print(F(label)); \
       Serial.print(val); \
-      Serial.println(unit); \
+      Serial.println(F(unit)); \
     } while(0)
 #else
-  #define AIRYAK_DEBUG_START() ((void)0);
-  #define AIRYAK_DEBUG_PRINT(...)   ((void)0)
-  #define AIRYAK_DEBUG_PRINTLN(...) ((void)0)
+  #define AIRYAK_DEBUG_START()                  ((void)0)
+  #define AIRYAK_DEBUG_PRINT(...)               ((void)0)
+  #define AIRYAK_DEBUG_PRINTLN(...)             ((void)0)
   #define AIRYAK_DEBUG_METRIC(label, val, unit) ((void)0)
 #endif
 

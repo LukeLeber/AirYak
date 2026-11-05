@@ -44,7 +44,7 @@ class Rudder::Impl {
         for(uint8_t i = 0; i < 8; ++i) {
           this->samples[i] = 90;
         }
-      AIRYAK_DEBUG_METRIC('Rudder is moving to position', 90, 'degrees.');
+      AIRYAK_DEBUG_METRIC("Rudder is moving to position", 90, "degrees.");
     }
 };
 
@@ -81,7 +81,7 @@ void Rudder::update() {
     if (new_position == 0 || new_position == 180 || abs((int)new_position - (int)this->impl->current_position) > 1) {
       this->impl->output.setPosition(new_position);
       this->impl->current_position = new_position;
-      AIRYAK_DEBUG_METRIC('Rudder is moving to position', new_position, 'degrees.');
+      AIRYAK_DEBUG_METRIC("Rudder is moving to position", new_position, "degrees.");
     }
   }
 }
