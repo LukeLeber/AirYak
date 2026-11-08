@@ -1,21 +1,27 @@
 #!/bin/bash
+set -euo pipefail
 
-# Create a temporary directory for the build output
-mkdir -p build
+# Create an isolated temporary directory in /tmp.
+TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/airyak-lint.XXXXXX")
 
-# 1. Generate the compilation database into the separate build directory
-arduino-cli compile --fqbn arduino:avr:uno --libraries ./lib --only-compilation-database --build-path ./build
+# Always clean up the temporary directory on exit.
+cleanup() {
+    rm -rf "$TMP_DIR"
+}
+trap cleanup EXIT
 
-# 2. Move the generated database to the project root where clang-tidy expects it
-if [ -f "./build/compile_commands.json" ]; then
-    cp ./build/compile_commands.json .
-else
-    echo "Error: compile_commands.json was not generated."
+# Generate compile_commands.json directly inside /tmp.
+arduino-cli compile \
+    --fqbn arduino:avr:uno \
+    --libraries ./lib \
+    --only-compilation-database \
+    --build-path "$TMP_DIR" \
+    .
+
+if [ ! -f "$TMP_DIR/compile_commands.json" ]; then
+    echo "Error: compile_commands.json was not generated." >&2
     exit 1
 fi
 
-# 3. Clean up the temporary build directory
-rm -rf build
-
-# 4. Run clang-tidy using the database now located in the current folder (.)
-clang-tidy -p . lib/**/*.cpp
+# Point clang-tidy directly at the /tmp build folder.
+find ./lib -type f -name '*.cpp' -print0 | xargs -0 clang-tidy -p "$TMP_DIR"
