@@ -1,8 +1,17 @@
-#ifndef MOCK_UTIL_ATOMIC_H
-#define MOCK_UTIL_ATOMIC_H
+/**
+ * @file atomic.h
+ * @brief Host-side mock definitions for AVR <util/atomic.h> critical section macros.
+ * @author Luke Leber
+ * @version 1.0.0
+ */
+#ifndef AIRYAK_MOCK_UTIL_ATOMIC_H
+#define AIRYAK_MOCK_UTIL_ATOMIC_H
 
-// Simulate the AVR architecture macros cleanly on Linux host environments
-#define ATOMIC_RESTORESTATE 0
-#define ATOMIC_BLOCK(type) for(int _init = 1; _init; _init = 0)
+// This file emulates several AVR architecture macros on Linux host
+// envirionments. On AVR chips, the ATOMIC_RESTORESTATE and ATOMIC_BLOCK macros
+// work together to provide highly performant thread safety.
 
-#endif
+#define ATOMIC_RESTORESTATE
+#define ATOMIC_BLOCK(type) if (true)
+
+#endif // AIRYAK_MOCK_UTIL_ATOMIC_H
