@@ -1,0 +1,54 @@
+name: AirYak Build & Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  unit-tests:
+    name: Native Unit Tests (Unity)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository and Unity submodule
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Run native component tests
+        run: |
+          chmod +x ./run_tests.sh
+          ./run_tests.sh
+
+  lint-and-build:
+    name: Firmware Build & Static Analysis (clang-tidy)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install clang-tidy and AVR headers
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-tidy gcc-avr avr-libc
+
+      - name: Setup Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+
+      - name: Install AVR core and libraries
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install arduino:avr
+          arduino-cli lib install "PID" "Servo"
+
+      - name: Verify release and debug firmware builds
+        run: |
+          arduino-cli compile --fqbn arduino:avr:uno --libraries ./lib .
+          arduino-cli compile --fqbn arduino:avr:uno --libraries ./lib \
+            --build-property "compiler.cpp.extra_flags=-DAIRYAK_DEBUG" .
+
+      - name: Run clang-tidy static analysis
+        run: |
+          chmod +x ./lint.sh
+          ./lint.sh
