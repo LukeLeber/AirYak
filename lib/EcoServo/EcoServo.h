@@ -32,6 +32,16 @@ class EcoServo {
     EcoServo(uint8_t pin, uint16_t position, uint16_t sweep_delay_millis);
 
     /**
+     * @brief Copy construction is explicitly disabled due to physical hardware resource pinning constraints.
+     */
+    EcoServo(const EcoServo&) = delete;
+    
+    /**
+     * @brief Copy assignment is explicitly disabled due to physical hardware resource pinning constraints.
+     */
+    EcoServo& operator=(const EcoServo&) = delete;
+    
+    /**
      * @brief Destroys the EcoServo instance and cleanly releases internal memory allocations.
      */
     ~EcoServo(void);

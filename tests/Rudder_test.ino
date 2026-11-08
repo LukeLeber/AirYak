@@ -135,7 +135,19 @@ void test_rudder_full_starboard_to_full_port(void) {
   TEST_ASSERT_EQUAL_UINT8(HARD_PORT, rudder.getPosition());
 }
 
-// --- Dynamic Host Switching Portal ---
+void test_rudder_hysteresis_ignores_one_degree_jitter(void) {
+  Rudder rudder(4, 5, 100);
+
+  // ADC = 518 -> round((518 * 180 + 511) / 1023) = 91 degrees (1 degree from 90)
+  mock_analog_value = 518;
+  for (uint8_t i = 0; i < 8; ++i) {
+    rudder.update();
+  }
+
+  // Must remain at 90 degrees because |91 - 90| <= 1
+  TEST_ASSERT_EQUAL_UINT8(STRAIGHT_ON, rudder.getPosition());
+}
+
 int main(int argc, char **argv) {
     UNITY_BEGIN();
     RUN_TEST(test_rudder_default_position);
@@ -145,5 +157,6 @@ int main(int argc, char **argv) {
     RUN_TEST(test_rudder_hard_starboard);
     RUN_TEST(test_rudder_full_port_to_full_starboard);
     RUN_TEST(test_rudder_full_starboard_to_full_port);
+    RUN_TEST(test_rudder_hysteresis_ignores_one_degree_jitter);
     return UNITY_END();
 }

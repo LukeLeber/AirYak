@@ -2,61 +2,96 @@
 #include <Arduino.h>
 #include <Tachometer.h>
 
-// Subject under test
-Tachometer* tachometer;
-const uint8_t TARGET_PIN = 2; // Digital pin 2 is mapped to interrupt 0 in our mock framework
+const uint8_t TARGET_PIN = 3;
 
 void setUp(void) {
     mock_millis = 1000;
+    mock_micros = 1000000UL;
     mock_isr_callback = nullptr;
-    // Instantiating tachometer creates its private internal FlywheelMagnetInterrupt object
-    tachometer = new Tachometer(TARGET_PIN);
 }
 
 void tearDown(void) {
-    delete tachometer;
 }
 
 /**
  * Asserts the initial baseline zero metrics configuration.
  */
 void test_tachometer_initial_state(void) {
-    TEST_ASSERT_EQUAL_UINT16(0, tachometer->getSpeed());
+    Tachometer tachometer(TARGET_PIN);
+    TEST_ASSERT_EQUAL_UINT16(0, tachometer.getSpeed());
+    tachometer.resample();
+    TEST_ASSERT_EQUAL_UINT16(0, tachometer.getSpeed());
 }
 
 /**
- * Validates dynamic speed calculations by simulating hardware edge-trigger executions.
+ * Validates initial RPM calculation from a 40,000 us period (1,500 RPM).
+ * When starting from 0 RPM, the filter seeds directly to raw_rpm without lag.
  */
-void test_tachometer_resampling_calculations(void) {
-    TEST_ASSERT_EQUAL_UINT16(0, tachometer->getSpeed());
-    TEST_ASSERT_NOT_NULL(mock_isr_callback); // Verify underlying sensor bound the ISR correctly
+void test_tachometer_initial_speed_calculation(void) {
+    Tachometer tachometer(TARGET_PIN);
+    TEST_ASSERT_NOT_NULL(mock_isr_callback);
 
-    // 1. Simulate an interval with 25 pulses over 1000ms (25 RPS * 60 = 1500 RPM)
-    for (int i = 0; i < 25; i++) {
-        mock_isr_callback();
-    }
-    delay(1000); // Steps mock_millis forward to 2000
-    tachometer->resample();
-    TEST_ASSERT_EQUAL_UINT16(1500, tachometer->getSpeed());
+    // Pulse 1 sets the initial timestamp anchor
+    mock_isr_callback();
+    tachometer.resample();
+    TEST_ASSERT_EQUAL_UINT16(0, tachometer.getSpeed());
 
-    // 2. Simulate a stationary engine state (0 pulses over 1050ms loop cycle time)
-    delay(1050); // Steps mock_millis forward to 3050 (Time elapsed = 1050ms)
-    tachometer->resample();
-    TEST_ASSERT_EQUAL_UINT16(0, tachometer->getSpeed());
+    // Pulse 2 arrives 40,000 us later -> 60,000,000 / 40,000 = 1,500 RPM
+    delayMicroseconds(40000UL);
+    mock_isr_callback();
+    tachometer.resample();
+    TEST_ASSERT_EQUAL_UINT16(1500, tachometer.getSpeed());
+}
 
-    // 3. Simulate high-speed operation with jitter (50 pulses over 1025ms loop cycle time)
-    // Precise Calculation: (50 * 60,000) / 1025 = 2926 RPM
-    for (int i = 0; i < 50; i++) {
-        mock_isr_callback();
-    }
-    delay(1025); 
-    tachometer->resample();
-    TEST_ASSERT_EQUAL_UINT16(2926, tachometer->getSpeed());
+/**
+ * Validates the 75/25 EMA smoothing calculation when engine speed changes.
+ */
+void test_tachometer_ema_smoothing(void) {
+    Tachometer tachometer(TARGET_PIN);
+
+    // Seed initial speed at 1,500 RPM (40,000 us period)
+    mock_isr_callback();
+    delayMicroseconds(40000UL);
+    mock_isr_callback();
+    tachometer.resample();
+    TEST_ASSERT_EQUAL_UINT16(1500, tachometer.getSpeed());
+
+    // Step to 3,000 RPM (20,000 us period)
+    // First resample: ((1500 * 3) + 3000) / 4 = 7500 / 4 = 1875 RPM
+    delayMicroseconds(20000UL);
+    mock_isr_callback();
+    tachometer.resample();
+    TEST_ASSERT_EQUAL_UINT16(1875, tachometer.getSpeed());
+
+    // Second resample on same period: ((1875 * 3) + 3000) / 4 = 8625 / 4 = 2156 RPM
+    tachometer.resample();
+    TEST_ASSERT_EQUAL_UINT16(2156, tachometer.getSpeed());
+}
+
+/**
+ * Validates that exceeding the 500 ms stall timeout drops reported speed to 0 RPM.
+ */
+void test_tachometer_stall_detection(void) {
+    Tachometer tachometer(TARGET_PIN);
+
+    // Establish 2,000 RPM (30,000 us period)
+    mock_isr_callback();
+    delayMicroseconds(30000UL);
+    mock_isr_callback();
+    tachometer.resample();
+    TEST_ASSERT_EQUAL_UINT16(2000, tachometer.getSpeed());
+
+    // Advance past the 500,000 us (500 ms) stall threshold without new pulses
+    delayMicroseconds(500001UL);
+    tachometer.resample();
+    TEST_ASSERT_EQUAL_UINT16(0, tachometer.getSpeed());
 }
 
 int main(int argc, char **argv) {
     UNITY_BEGIN();
     RUN_TEST(test_tachometer_initial_state);
-    RUN_TEST(test_tachometer_resampling_calculations);
+    RUN_TEST(test_tachometer_initial_speed_calculation);
+    RUN_TEST(test_tachometer_ema_smoothing);
+    RUN_TEST(test_tachometer_stall_detection);
     return UNITY_END();
 }

@@ -30,10 +30,14 @@ class AnalogSensor {
      */
     AnalogSensor(uint8_t pin, uint8_t sensitivity_factor = 2);
 
-    // Prevent copies via copy constructor.
+    /**
+     * @brief Copy construction is explicitly disabled due to physical hardware resource pinning constraints.
+     */
     AnalogSensor(const AnalogSensor&) = delete;
 
-    // Prevent copies via assignment.
+    /**
+     * @brief Copy assignment is explicitly disabled due to physical hardware resource pinning constraints.
+     */
     AnalogSensor& operator=(const AnalogSensor&) = delete;
 
     /**

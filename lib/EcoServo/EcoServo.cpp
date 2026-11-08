@@ -1,4 +1,15 @@
+/**
+ * @file EcoServo.cpp
+ * @brief Implementation details for the AirYak power-optimized EcoServo actuator controller.
+ * @author Luke Leber
+ * @version 1.0.0
+ * 
+ * Implements transient PWM attachment windows and non-blocking idle timeout detaching
+ * using the Pointer to Implementation (PIMPL) idiom to conserve power and prevent line sag.
+ */
+
 #include <Arduino.h>
+#include <AirYakConfig.h>
 #include <Servo.h>
 #include <EcoServo.h>
 
@@ -18,15 +29,7 @@ class EcoServo::Impl {
       this->output.write(position);
       this->is_attached = true;
       this->last_command = (uint32_t)millis();
-      #ifdef DEBUG
-        Serial.print("Initialized pin ");
-        Serial.print(pin);
-        Serial.print(" with written value ");
-        Serial.println(position);
-        Serial.print("EcoServo will wait ");
-        Serial.print(sweep_delay_millis);
-        Serial.println(" milliseconds before switching off");
-      #endif
+      AIRYAK_DEBUG_METRIC("EcoServo initialized with", sweep_delay_millis, "milliseconds idle time before power off.");
     }
 };
 
@@ -39,19 +42,11 @@ void EcoServo::setPosition(uint16_t position) {
     if (!this->impl->is_attached) {
       this->impl->output.attach(this->impl->pin);
       this->impl->is_attached = true;
-      #ifdef DEBUG
-        Serial.println("Turned on");
-      #endif
+      AIRYAK_DEBUG_PRINTLN("EcoServo reattached");
     }
     this->impl->position = position;
     this->impl->output.write(this->impl->position);
     this->impl->last_command = static_cast<uint32_t>(millis());
-    #ifdef DEBUG
-    Serial.print("Wrote command ");
-    Serial.print(position);
-    Serial.print(" to EcoServo running on pin ");
-    Serial.println(this->impl->pin);
-    #endif
   }
 }
 
@@ -59,9 +54,7 @@ void EcoServo::revalidateEcoMode(void) {
   if (this->impl->is_attached && ((uint32_t)millis() - this->impl->last_command) >= this->impl->sweep_delay_millis) {
     this->impl->output.detach();
     this->impl->is_attached = false;
-    #ifdef DEBUG
-      Serial.println("Turned off");
-    #endif
+    AIRYAK_DEBUG_PRINTLN("EcoServo detached");
   }
 }
 

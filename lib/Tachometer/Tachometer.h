@@ -4,8 +4,9 @@
  * @author Luke Leber
  * @version 1.0.0
  * 
- * Computes crankshaft revolutions per minute (RPM) by monitoring edge-triggered
- * pulse captures from a localized private hardware interrupt line.
+ * Computes crankshaft revolutions per minute (RPM) by monitoring rotational
+ * period intervals from a localized private hardware interrupt
+ * line.
  */
 
 #ifndef AIRYAK_TACHOMETER_H
@@ -30,9 +31,14 @@ class Tachometer {
     Tachometer(uint8_t pin);
 
     /**
-     * @brief Destroys the context and cleans up internal data instances safely.
+     * @brief Copy construction is explicitly disabled due to physical hardware resource pinning constraints.
      */
-    ~Tachometer(void);
+    Tachometer(const Tachometer&) = delete;
+
+    /**
+     * @brief Copy assignment is explicitly disabled due to physical hardware resource pinning constraints.
+     */
+    Tachometer& operator=(const Tachometer&) = delete;
 
     /**
      * @brief Evaluates time delta metrics and updates the current speed register.
@@ -45,9 +51,14 @@ class Tachometer {
     /**
      * @brief Fetches the most recently processed crankshaft velocity calculation.
      * 
-     * @return const uint16_t The engine rotational speed value in Revolutions Per Minute (RPM).
+     * @return uint16_t The engine rotational speed value in Revolutions Per Minute (RPM).
      */
-    const uint16_t getSpeed() const;
+    uint16_t getSpeed() const;
+
+    /**
+     * @brief Destroys the context and cleans up internal data instances safely.
+     */
+    ~Tachometer(void);
     
   private:
     class Impl;

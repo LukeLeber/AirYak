@@ -31,16 +31,31 @@ class Rudder {
     Rudder(uint8_t input_pin, uint8_t output_pin, uint16_t sweep_delay_millis);
 
     /**
-     * @brief Destroys the Rudder instance and cleanly releases internal memory allocations.
+     * @brief Copy construction is explicitly disabled due to physical hardware resource pinning constraints.
      */
-    ~Rudder();
+    Rudder(const Rudder&) = delete;
+
+    /**
+     * @brief Copy assignment is explicitly disabled due to physical hardware resource pinning constraints.
+     */
+    Rudder& operator=(const Rudder&) = delete;
 
     /**
      * @brief Polls the input channel and updates the steering actuator.
      */
     void update();
     
+    /**
+     * @brief Retrieves the last commanded target position assigned to the actuator.
+     * 
+     * @return uint8_t The active position target value.
+     */
     uint8_t getPosition(void) const;
+
+    /**
+     * @brief Destroys the Rudder instance and cleanly releases internal memory allocations.
+     */
+    ~Rudder();
 
   private:
     class Impl;

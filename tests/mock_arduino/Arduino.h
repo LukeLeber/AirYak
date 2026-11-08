@@ -9,24 +9,39 @@
 #define FALLING 0
 #define INPUT_PULLUP 2
 
+#define P_ON_M 0
+#define P_ON_E 1
+
 extern unsigned long mock_millis;
-extern void (*mock_isr_callback)(void); // Expose the registered function pointer
+extern unsigned long mock_micros;
+extern void (*mock_isr_callback)(void);
 extern uint16_t mock_analog_value;
 
-inline void delay(unsigned long ms) { mock_millis += ms; }
-inline void delayMicroseconds(unsigned long us) { }
+inline void delay(unsigned long ms) {
+    mock_millis += ms;
+    mock_micros += ms * 1000UL;
+}
+
+inline void delayMicroseconds(unsigned long us) {
+    mock_micros += us;
+    mock_millis = mock_micros / 1000UL;
+}
+
 inline unsigned long millis() { return mock_millis; }
-inline int digitalPinToInterrupt(uint8_t pin) { return (pin == 2) ? 0 : NOT_AN_INTERRUPT; }
+inline unsigned long micros() { return mock_micros; }
+
+inline int digitalPinToInterrupt(uint8_t pin) { return (pin == 2 || pin == 3) ? (pin - 2) : NOT_AN_INTERRUPT; }
+
 inline void pinMode(uint8_t pin, uint8_t mode) {}
 
 inline void attachInterrupt(int interruptNum, void (*userFunc)(void), int mode) {
-    if (interruptNum == 0) {
-        mock_isr_callback = userFunc; // Save the registered callback address
+    if (interruptNum == 0 || interruptNum == 1) {
+        mock_isr_callback = userFunc;
     }
 }
 
 inline void detachInterrupt(int interruptNum) {
-    if (interruptNum == 0) {
+    if (interruptNum == 0 || interruptNum == 1) {
         mock_isr_callback = nullptr;
     }
 }
@@ -36,5 +51,10 @@ inline long map(long x, long in_min, long in_max, long out_min, long out_max) {
 }
 
 inline uint16_t analogRead(uint8_t pin) { return mock_analog_value; }
+
+template <typename T>
+inline T abs(T x) {
+    return (x < 0) ? -x : x;
+}
 
 #endif

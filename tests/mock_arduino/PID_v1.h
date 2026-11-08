@@ -20,13 +20,15 @@ class PID {
     double _max_limit;
 
   public:
-    PID(double* Input, double* Output, double* Setpoint, double Kp, double Ki, double Kd, int Direction) :
+    PID(double* Input, double* Output, double* Setpoint, double Kp, double Ki, double Kd, int Direction, int POn = P_ON_E) :
       _mode(MANUAL),
       _input(Input),
       _output(Output),
       _setpoint(Setpoint),
       _min_limit(0.0),
       _max_limit(255.0) {}
+
+    void SetSampleTime(int NewSampleTime) {}
 
     void SetOutputLimits(double min, double max) {
         _min_limit = min;

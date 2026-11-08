@@ -5,7 +5,6 @@
 
 #include <Tachometer.h>
 #include <FlywheelMagnetInterrupt.h>
-#include <Arduino.h>
 
 /**
  * @class Tachometer::Impl
@@ -13,34 +12,46 @@
  */
 class Tachometer::Impl {
   public:
-    FlywheelMagnetInterrupt interrupt; /**< Private hardware sensor instance handle. */    
-    uint32_t last_update;               /**< Absolute fixed-width timestamp anchor for sample sweeps. */
-    uint16_t speed;                     /**< Cached operational value registry record. */
 
-    Impl(uint8_t pin): interrupt(pin), last_update((uint32_t)millis()), speed(0) {}
+    Impl(uint8_t pin): interrupt(pin), speed(0) {}
+    void resample(void) {
+      uint32_t period = this->interrupt.getPeriodMicros();
+      
+      if (period > 0) {
+        // 60,000,000 microseconds per minute / period in microseconds
+        uint16_t raw_rpm = (uint16_t)(60000000UL / period);
+        
+        // Optional light EMA smoothing (75% old, 25% new) to absorb minor crank speed variations
+        if (this->speed == 0) {
+          this->speed = raw_rpm;
+        } else {
+          this->speed = ((this->speed * 3) + raw_rpm) / 4;
+        }
+      } else {
+        this->speed = 0;
+      }
+    }
+
+    uint16_t getSpeed(void) const {
+      return this->speed;
+    }
     ~Impl() {}
+
+  private:
+    FlywheelMagnetInterrupt interrupt; /**< Private hardware sensor instance handle. */    
+    uint16_t speed;                     /**< Cached operational value registry record. */
 };
 
 Tachometer::Tachometer(uint8_t pin): impl(new Tachometer::Impl(pin)) {}
 
+void Tachometer::resample(void) {
+  this->impl->resample();
+}
+
+uint16_t Tachometer::getSpeed(void) const {
+  return this->impl->getSpeed();
+}
+
 Tachometer::~Tachometer(void) {
   delete this->impl;
-}
-
-void Tachometer::resample(void) {
-  uint32_t now = (uint32_t)millis();
-  uint32_t elapsed = now - this->impl->last_update;
-
-  // Enforce a strict minimum 1-second operational interval buffer to stabilize values
-  if (elapsed >= 1000) {
-    uint8_t recorded_pulses = this->impl->interrupt.getPulses();
-
-    this->impl->speed = (uint16_t)(((uint32_t)recorded_pulses * 60000UL) / elapsed);
-    
-    this->impl->last_update = now;
-  }
-}
-
-const uint16_t Tachometer::getSpeed(void) const {
-  return this->impl->speed;
 }
