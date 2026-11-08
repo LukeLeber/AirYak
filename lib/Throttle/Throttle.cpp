@@ -26,20 +26,8 @@
  * @brief Private data allocation block shielding governor system variables via the PIMPL pattern.
  */
 class Throttle::Impl {
+
   public:
-    double throttle_position;            /**< Calculated output tracking variable driven by governor core. */
-    double target_speed;                 /**< Regulated target operational velocity in RPM. */
-    double current_speed;                /**< Actively monitored rotational speed readout cache in RPM. */
-    uint8_t starting_throttle_position;  /**< Hardcoded initial startup throttle valve angle. */
-    uint16_t dangerous_engine_speed;     /**< Absolute hardware protection limit boundary (RPM). */
-    uint16_t engine_idle_speed;          /**< Lower mapping boundary value for governed pilot requests. */
-    uint16_t max_engine_speed;           /**< Upper mapping boundary value for governed pilot requests. */
-    uint8_t throttle_servo_min_position; /**< Angular position of the minimum throttle angle. */
-    PID pid;                             /**< Core automated feedback calculation engine instance. */
-    float last_sent_position;
-    const Tachometer& tachometer;        /**< Injected reference link targeting the velocity subsystem. */
-    AnalogSensor input;                  /**< Potentiometer hardware signal converter monitor hook. */
-    EcoServo output;                        /**< Controlled physical servo channel actuator reference layout. */
 
     Impl(const Tachometer& tachometer, uint8_t input_pin, uint8_t output_pin, double Kp, double Ki, double Kd, uint8_t starting_throttle_position, uint16_t dangerous_engine_speed, uint16_t engine_idle_speed, uint16_t max_engine_speed, uint8_t throttle_servo_min_position, uint8_t throttle_servo_max_position, uint16_t sweep_delay_millis):
       throttle_position(starting_throttle_position),
@@ -152,6 +140,21 @@ class Throttle::Impl {
       this->last_sent_position = (float)this->starting_throttle_position;
       this->output.setPosition(this->starting_throttle_position);
     }
+
+  private:
+    double throttle_position;            /**< Calculated output tracking variable driven by governor core. */
+    double target_speed;                 /**< Regulated target operational velocity in RPM. */
+    double current_speed;                /**< Actively monitored rotational speed readout cache in RPM. */
+    uint8_t starting_throttle_position;  /**< Hardcoded initial startup throttle valve angle. */
+    uint16_t dangerous_engine_speed;     /**< Absolute hardware protection limit boundary (RPM). */
+    uint16_t engine_idle_speed;          /**< Lower mapping boundary value for governed pilot requests. */
+    uint16_t max_engine_speed;           /**< Upper mapping boundary value for governed pilot requests. */
+    uint8_t throttle_servo_min_position; /**< Angular position of the minimum throttle angle. */
+    PID pid;                             /**< Core automated feedback calculation engine instance. */
+    float last_sent_position;
+    const Tachometer& tachometer;        /**< Injected reference link targeting the velocity subsystem. */
+    AnalogSensor input;                  /**< Potentiometer hardware signal converter monitor hook. */
+    EcoServo output;                        /**< Controlled physical servo channel actuator reference layout. */
 };
 
 Throttle::Throttle(const Tachometer& tachometer, uint8_t input_pin, uint8_t output_pin, double Kp, double Ki, double Kd, uint8_t starting_throttle_position, uint16_t dangerous_engine_speed, uint16_t engine_idle_speed, uint16_t max_engine_speed, uint8_t throttle_servo_min_position, uint8_t throttle_servo_max_position, uint16_t sweep_delay_millis): 

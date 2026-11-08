@@ -24,13 +24,8 @@
  *       adjust the runtime warmup_duration limit based on actual engine thermal loads.
  */
 class Choke::Impl {
+
   public:
-    const Tachometer& tachometer;        /**< Reference to the tachometer subsystem. */
-    EcoServo output;                     /**< Reference to the actuated hardware channel. */
-    const uint8_t choke_off_position;    /**< Target angular position for normal running. */
-    const uint8_t choke_full_position;   /**< Target angular position for rich fueling. */
-    const uint32_t warmup_duration;      /**< Allowed phase timeframe in milliseconds. */
-    uint32_t engine_start_time;          /**< Timestamp anchor for the active cycle loop. */
 
     /**
      * @brief Instantiates the private structural context block.
@@ -125,6 +120,14 @@ class Choke::Impl {
     uint16_t getPosition(void) const {
       return this->output.getPosition();
     }
+
+    private:
+    const Tachometer& tachometer;        /**< Reference to the tachometer subsystem. */
+    EcoServo output;                     /**< Reference to the actuated hardware channel. */
+    const uint8_t choke_off_position;    /**< Target angular position for normal running. */
+    const uint8_t choke_full_position;   /**< Target angular position for rich fueling. */
+    const uint32_t warmup_duration;      /**< Allowed phase timeframe in milliseconds. */
+    uint32_t engine_start_time;          /**< Timestamp anchor for the active cycle loop. */
 };
 
 Choke::Choke(const Tachometer& tachometer, uint8_t pin, uint8_t choke_off_position, uint8_t choke_full_position, uint32_t warmup_duration, uint16_t sweep_delay_millis): 

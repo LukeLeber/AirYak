@@ -15,11 +15,8 @@
  * changes to the internal structures do not break downstream compilation dependencies.
  */
 class AnalogSensor::Impl {
+
   public:
-    uint8_t pin;                     /**< Assigned physical micro-controller input channel. */
-    uint8_t sensitivity_factor;      /**< Assigned sensitivity factor for the sensor. */
-    mutable uint16_t smoothed_value; /**< The current smoothed value for the sensor. */
-    mutable bool is_initialized;     /**< An initialization flag for the sensor. */
 
     /**
      * @brief Instantiates the private structural context block.
@@ -46,16 +43,22 @@ class AnalogSensor::Impl {
       }
       return this->smoothed_value;
     }
+
+  private:
+    uint8_t pin;                     /**< Assigned physical micro-controller input channel. */
+    uint8_t sensitivity_factor;      /**< Assigned sensitivity factor for the sensor. */
+    mutable uint16_t smoothed_value; /**< The current smoothed value for the sensor. */
+    mutable bool is_initialized;     /**< An initialization flag for the sensor. */
 };
 
 AnalogSensor::AnalogSensor(uint8_t pin, uint8_t sensitivity_factor): impl(new AnalogSensor::Impl(pin, sensitivity_factor)) {
 
 }
 
-AnalogSensor::~AnalogSensor() {
-  delete this->impl;
-}
-
 uint16_t AnalogSensor::read() const {
   return this->impl->read();
+}
+
+AnalogSensor::~AnalogSensor() {
+  delete this->impl;
 }

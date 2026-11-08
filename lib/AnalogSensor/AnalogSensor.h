@@ -41,15 +41,15 @@ class AnalogSensor {
     AnalogSensor& operator=(const AnalogSensor&) = delete;
 
     /**
-     * @brief Destroys an analog sensor instance.
-     */
-    ~AnalogSensor(void);
-
-    /**
      * @brief Executes a sample request using a strict cross-platform type framework.
      * @return uint16_t Guaranteed 16-bit data container matching all ADC hardware spreads.
      */
     uint16_t read() const;
+    
+    /**
+     * @brief Destroys an analog sensor instance.
+     */
+    ~AnalogSensor(void);
 
   private:
     class Impl;

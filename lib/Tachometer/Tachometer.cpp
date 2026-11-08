@@ -13,7 +13,10 @@
 class Tachometer::Impl {
   public:
 
-    Impl(uint8_t pin): interrupt(pin), speed(0) {}
+    Impl(uint8_t pin): interrupt(pin), speed(0) {
+
+    }
+
     void resample(void) {
       uint32_t period = this->interrupt.getPeriodMicros();
       

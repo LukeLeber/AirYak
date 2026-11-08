@@ -20,12 +20,6 @@
  * @brief Private data allocation block keeping tracking histories hidden from the API interface boundary.
  */
 class Rudder::Impl {
-  private:
-    AnalogSensor input;           /**< Input potentiometer to read for desired rudder position. */
-    EcoServo output;              /**< Actuator hardware for the rudder control. */
-    uint8_t samples[8];           /**< Rolling circular memory array storage buffer. */
-    uint8_t next_sample;          /**< Index position tracker highlighting where the oldest record sits. */
-    uint16_t total_sample;        /**< Running cumulative sum registry backing the average calculation steps. */
 
   public:
     /**
@@ -89,6 +83,14 @@ class Rudder::Impl {
     uint8_t getPosition(void) const {
       return this->output.getPosition();
     }
+
+  private:
+    AnalogSensor input;           /**< Input potentiometer to read for desired rudder position. */
+    EcoServo output;              /**< Actuator hardware for the rudder control. */
+    uint8_t samples[8];           /**< Rolling circular memory array storage buffer. */
+    uint8_t next_sample;          /**< Index position tracker highlighting where the oldest record sits. */
+    uint16_t total_sample;        /**< Running cumulative sum registry backing the average calculation steps. */
+
 };
 
 Rudder::Rudder(uint8_t input_pin, uint8_t output_pin, uint16_t sweep_delay_millis):
