@@ -26,7 +26,7 @@ class AnalogSensor::Impl {
      * 
      * Persists the input channel.
      * 
-     * @param[in] pin The physical PWM input pin for the sensor.
+     * @param[in] pin The physical analog ADC input pin for the sensor.
      * @param[in] sensitivity_factor The EMA smoothing factor for the sensor.
      */
     Impl(uint8_t pin, uint8_t sensitivity_factor) : pin(pin), sensitivity_factor(sensitivity_factor), smoothed_value(0), is_initialized(false) {
@@ -41,7 +41,8 @@ class AnalogSensor::Impl {
       } else {
         // Apply an exponential smoothing algorithm to cut down on jitter.
         // See https://en.wikipedia.org/wiki/Exponential_smoothing for more information.
-        this->smoothed_value = this->smoothed_value + ((raw - this->smoothed_value) >> this->sensitivity_factor);
+        int32_t diff = static_cast<int32_t>(raw) - static_cast<int32_t>(this->smoothed_value);
+        this->smoothed_value = static_cast<uint16_t>(this->smoothed_value + (diff >> this->sensitivity_factor));
       }
       return this->smoothed_value;
     }

@@ -12,6 +12,11 @@
 /**
  * @class AnalogSensor
  * @brief Encapsulates a physical analog sensor.
+ * 
+ * This class applies an exponential smoothing algorithm to the raw values read
+ * in from the underlying sensor. This helps to keep clean, gradual signals and
+ * prevent noise and jitter. The higher the sensitivity factor, the more
+ * smoothing is applied.
  */
 class AnalogSensor {
 
@@ -20,10 +25,16 @@ class AnalogSensor {
     /**
      * @brief Constructs a new analog sensor instance.
      * 
-     * @param[in] pin The physical PWM input pin for the sensor.
+     * @param[in] pin The physical analog ADC input pin for the sensor.
      * @param[in] sensitivity_factor The EMA smoothing factor for the sensor.
      */
     AnalogSensor(uint8_t pin, uint8_t sensitivity_factor = 2);
+
+    // Prevent copies via copy constructor.
+    AnalogSensor(const AnalogSensor&) = delete;
+
+    // Prevent copies via assignment.
+    AnalogSensor& operator=(const AnalogSensor&) = delete;
 
     /**
      * @brief Destroys an analog sensor instance.
