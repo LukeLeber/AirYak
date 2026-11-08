@@ -8,7 +8,7 @@ on:
 
 jobs:
   unit-tests:
-    name: Native Unit Tests (Unity)
+    name: Native Unit Tests & Coverage
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository and Unity submodule
@@ -16,10 +16,26 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Run native component tests
+      - name: Install gcovr
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcovr
+
+      - name: Run native component tests with coverage
         run: |
           chmod +x ./run_tests.sh
-          ./run_tests.sh
+          ./run_tests.sh --coverage
+
+      - name: Generate Coverage Summary
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: coverage.xml
+          badge: true
+          format: markdown
+          output: both
+
+      - name: Add Coverage Summary to Job Summary
+        run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
 
   lint-and-build:
     name: Firmware Build & Static Analysis (clang-tidy)

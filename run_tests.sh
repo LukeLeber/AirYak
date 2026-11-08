@@ -1,6 +1,17 @@
 #!/bin/bash
 set -euo pipefail
 
+# Parse optional CLI flags
+COVERAGE_MODE=0
+if [[ "${1:-}" == "--coverage" ]]; then
+    COVERAGE_MODE=1
+fi
+
+COV_FLAGS=()
+if [ "$COVERAGE_MODE" -eq 1 ]; then
+    COV_FLAGS=("--coverage" "-O0")
+fi
+
 # Configuration
 TEST_DIR="./tests"
 LIB_DIR="./lib"
@@ -46,7 +57,7 @@ for lib_sub_dir in "$LIB_DIR"/*; do
     fi
 done
 
-# Pre-compile Unity, mock Arduino, and library objects once for fast linking.
+# Pre-compile Unity and mock Arduino without coverage instrumentation.
 SHARED_OBJS=()
 gcc -c "$SUBMODULE_UNITY_DIR/unity.c" -I"$SUBMODULE_UNITY_DIR" -o "$BUILD_DIR/unity.o"
 SHARED_OBJS+=("$BUILD_DIR/unity.o")
@@ -54,9 +65,10 @@ SHARED_OBJS+=("$BUILD_DIR/unity.o")
 g++ -std=c++11 -Wall -Wextra -c "$TEST_DIR/mock_arduino/Arduino.cpp" "${INCLUDE_FLAGS[@]}" -o "$BUILD_DIR/Arduino.o"
 SHARED_OBJS+=("$BUILD_DIR/Arduino.o")
 
+# Pre-compile library implementation files (instrumented when --coverage is passed).
 while IFS= read -r src_file; do
     obj_name="$(basename "${src_file%.*}").o"
-    g++ -std=c++11 -Wall -Wextra -c "$src_file" "${INCLUDE_FLAGS[@]}" -o "$BUILD_DIR/$obj_name"
+    g++ -std=c++11 -Wall -Wextra "${COV_FLAGS[@]}" -c "$src_file" "${INCLUDE_FLAGS[@]}" -o "$BUILD_DIR/$obj_name"
     SHARED_OBJS+=("$BUILD_DIR/$obj_name")
 done < <(find "$LIB_DIR" -type f -name "*.cpp")
 
@@ -68,7 +80,7 @@ for test_file in "${TEST_FILES[@]}"; do
 
     echo -n "🧪 Testing [$component_name] ... "
 
-    if ! compile_output=$(g++ -std=c++11 -Wall -Wextra \
+    if ! compile_output=$(g++ -std=c++11 -Wall -Wextra "${COV_FLAGS[@]}" \
         "${INCLUDE_FLAGS[@]}" \
         -x c++ "$test_file" \
         -x none "${SHARED_OBJS[@]}" \
@@ -100,6 +112,10 @@ echo "   Failed:   $FAILED_COUNT"
 echo "===================================================="
 
 if [ "$FAILED" -eq 0 ]; then
+    if [ "$COVERAGE_MODE" -eq 1 ]; then
+        echo "📈 Generating Cobertura coverage report..."
+        gcovr -r . --object-directory "$BUILD_DIR" --filter 'lib/.*\.cpp' --cobertura coverage.xml
+    fi
     echo "🎉 All component systems are stable!"
     exit 0
 else
