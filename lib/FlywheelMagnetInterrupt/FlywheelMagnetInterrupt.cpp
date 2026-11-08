@@ -74,7 +74,7 @@ class FlywheelMagnetInterrupt::Impl {
     uint32_t getPeriodMicros(void) const {
       uint32_t period;
       uint32_t last;
-      ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+      ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { // NOLINT
         period = this->pulse_period_micros;
         last = this->last_pulse_micros;
       }
