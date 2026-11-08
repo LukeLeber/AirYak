@@ -2,7 +2,7 @@
 
 Engine Control Unit (ECU) firmware for the AirYak—a small-scale air-drive propulsion system for kayaks.
 
-[![AirYak Build & Test](https://github.com/LukeLeber/AirYak/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/LukeLeber/AirYak/actions/workflows/build-and-test.yml) [![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/LukeLeber/e2ac8fedaee1cf59a777912540685551/raw)](https://github.com/lukeleber/AirYak/actions/workflows/ci.yml)
+[![AirYak Build & Test](https://github.com/LukeLeber/AirYak/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/LukeLeber/AirYak/actions/workflows/build-and-test.yml) [![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/LukeLeber/e2ac8fedaee1cf59a777912540685551/raw)](https://github.com/lukeleber/AirYak/actions/workflows/build-and-test.yml)
 
 ## Hardware Compatibility
 * **Microcontroller:** Standalone ATmega328P (16 MHz external crystal)
