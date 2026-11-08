@@ -27,6 +27,7 @@ jobs:
           ./run_tests.sh --coverage
 
       - name: Generate Coverage Summary
+        id: coverage
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
           filename: coverage.xml
@@ -36,6 +37,19 @@ jobs:
 
       - name: Add Coverage Summary to Job Summary
         run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Update Dynamic Coverage Badge
+        if: github.ref == 'refs/heads/main'
+        uses: schneegans/dynamic-badges-action@v1.7.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: e2ac8fedaee1cf59a777912540685551
+          filename: airyak-coverage.json
+          label: coverage
+          message: ${{ steps.coverage.outputs.lineCoverage }}%
+          valColorRange: ${{ steps.coverage.outputs.lineCoverage }}
+          minColorRange: 60
+          maxColorRange: 90
 
   lint-and-build:
     name: Firmware Build & Static Analysis (clang-tidy)
